@@ -3,9 +3,11 @@ import { Link, useHistory } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { Map, TileLayer, Marker } from 'react-leaflet';
 import { LeafletMouseEvent } from 'leaflet';
-import axios from 'axios';
 
+import axios from 'axios';
 import api from '../../services/api';
+
+import Dropzone from '../../components/Dropzone';
 
 import './styles.css';
 
@@ -44,6 +46,7 @@ const CreatePoint = () => {
   const [selectedCity, setSelectedCity] = useState('0');
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [selectedPosition, setSelectedPosition] = useState<[number, number]>([0, 0]);
+  const [selectedFile, setSelectedFile] = useState<File>();
 
 
   const history = useHistory();
@@ -71,7 +74,7 @@ const CreatePoint = () => {
   }, []);
 
   useEffect(() => {
-    if(selectedUf === '0'){
+    if (selectedUf === '0') {
       return;
     }
 
@@ -103,14 +106,14 @@ const CreatePoint = () => {
 
   function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
-    setFormData({ ...formData, [name]: value});
+    setFormData({ ...formData, [name]: value });
   }
 
   function handleSelectItem(id: number) {
     // const alreadySelected = selectedItems.findIndex(item => item === id);
     const alreadySelected = selectedItems.includes(id);
 
-    if(alreadySelected) {
+    if (alreadySelected) {
       const filteredItems = selectedItems.filter(item => item !== id);
       setSelectedItems(filteredItems);
     } else {
@@ -120,24 +123,29 @@ const CreatePoint = () => {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    
+
     const { name, email, whatsapp } = formData;
     const uf = selectedUf;
     const city = selectedCity;
     const [latitude, longitude] = selectedPosition;
     const items = selectedItems;
 
-    const data = {
-      name,
-      email,
-      whatsapp,
-      uf,
-      city,
-      latitude,
-      longitude,
-      items
-    }
+    const data = new FormData();
 
+
+    data.append('name', name);
+    data.append('email', email);
+    data.append('whatsapp', whatsapp);
+    data.append('uf', uf);
+    data.append('city', city);
+    data.append('latitude', String(latitude));
+    data.append('longitude', String(longitude));
+    data.append('items', items.join(','));
+
+    if (selectedFile) {
+      data.append('image', selectedFile);
+    }
+    
     await api.post('points', data);
 
     alert('Ponto de coleta criado!');
@@ -149,7 +157,7 @@ const CreatePoint = () => {
   return (
     <div id="page-create-point">
       <header>
-        <img src={logo} alt="Ecoleta"/>
+        <img src={logo} alt="Ecoleta" />
         <Link to="/">
           <FiArrowLeft />
           Voltar para home
@@ -157,7 +165,9 @@ const CreatePoint = () => {
       </header>
 
       <form onSubmit={handleSubmit}>
-        <h1>Cadastro do <br/> ponto de coleta</h1>
+        <h1>Cadastro do <br /> ponto de coleta</h1>
+
+        <Dropzone onFileUploaded={setSelectedFile} />
 
         <fieldset>
           <legend>
@@ -166,7 +176,7 @@ const CreatePoint = () => {
 
           <div className="field">
             <label htmlFor="name">Nome da entidade</label>
-            <input 
+            <input
               type="text"
               name="name"
               id="name"
@@ -177,7 +187,7 @@ const CreatePoint = () => {
           <div className="field-group">
             <div className="field">
               <label htmlFor="email">E-mail</label>
-              <input 
+              <input
                 type="email"
                 name="email"
                 id="email"
@@ -187,7 +197,7 @@ const CreatePoint = () => {
 
             <div className="field">
               <label htmlFor="whatsapp">Whatsapp</label>
-              <input 
+              <input
                 type="text"
                 name="whatsapp"
                 id="whatsapp"
@@ -209,16 +219,16 @@ const CreatePoint = () => {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
 
-            <Marker position={selectedPosition}/>
+            <Marker position={selectedPosition} />
           </Map>
 
           <div className="field-group">
             <div className="field">
               <label htmlFor="uf">Estado (UF)</label>
-              <select 
-                name="uf" 
-                id="uf" 
-                value={selectedUf} 
+              <select
+                name="uf"
+                id="uf"
+                value={selectedUf}
                 onChange={handleSelectUf}
               >
                 <option value="0">Selecione uma UF</option>
@@ -230,7 +240,7 @@ const CreatePoint = () => {
 
             <div className="field">
               <label htmlFor="city">Cidade</label>
-              <select 
+              <select
                 name="city"
                 id="city"
                 value={selectedCity}
@@ -253,12 +263,12 @@ const CreatePoint = () => {
 
           <ul className="items-grid">
             {items.map(item => (
-              <li 
-                key={item.id} 
+              <li
+                key={item.id}
                 onClick={() => handleSelectItem(item.id)}
                 className={selectedItems.includes(item.id) ? 'selected' : ''}
               >
-                <img src={item.image_url} alt={item.title}/>
+                <img src={item.image_url} alt={item.title} />
                 <span>{item.title}</span>
               </li>
             ))}
