@@ -44,7 +44,7 @@ Ou, como alternativa:
     $ npm run dev
 
 
-Agora vá até o frontend:
+Agora, em outro terminal, vá até o frontend:
 
     $ cd ../frontend
 
