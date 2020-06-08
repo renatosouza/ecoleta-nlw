@@ -46,7 +46,7 @@ Ou, como alternativa:
 
 Agora, em outro terminal, vá até o frontend:
 
-    $ cd ../frontend
+    $ cd ../web
 
 Então, instale as dependências e inicie o frontend:
 
